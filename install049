@@ -17,7 +17,7 @@ validate_login() { [[ "$1" =~ ^[a-zA-Z0-9-]{3,}$ ]]; }
 validate_password() { [[ ${#1} -ge 8 ]]; }
 
 echo -e "${GREEN}\n✨ Marzban 0.4.9 Быстрая установка ✨${NC}\n"
-echo -e "${BLUE}Установщик разработан alexcoder специально для курса на skladchik.org${NC}\n"
+echo -e "${BLUE}✨Установщик разработан alexcoder специально для курса на skladchik.org✨${NC}\n"
 
 if [[ $EUID -ne 0 ]]; then
   echo -e "${YELLOW}[!] Запустите этот скрипт от имени root! (sudo su)${NC}"

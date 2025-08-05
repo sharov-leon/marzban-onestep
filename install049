@@ -62,7 +62,7 @@ stage "Обновление системы и установка зависим�
 progressbar "Обновление пакетов"
 DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
 progressbar "Установка Docker и Git"
-DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git docker.io docker-compose-plugin
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git nginx docker.io docker-compose-plugin jq
 
 stage "Включение Docker"
 systemctl enable --now docker

@@ -143,3 +143,4 @@ echo -e "\n${BLUE}Разработчик: alexcoder для Складчика${N
 
 echo -e "${YELLOW}========== СКОПИРУЙТЕ ЭТОТ БЛОК В XRAY-ПАНЕЛЬ MARZBAN ГДЕ ШЕСТЕРЕНКА ==========${NC}\n"
 cat "$CONFIG_PATH"
+echo -e "${YELLOW}========== СКОПИРУЙТЕ ЭТОТ БЛОК В XRAY-ПАНЕЛЬ MARZBAN ГДЕ ШЕСТЕРЕНКА ==========${NC}\n"

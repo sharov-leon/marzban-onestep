@@ -60,14 +60,11 @@ done
 
 stage "Обновление системы и установка зависимостей"
 progressbar "Обновление пакетов"
-#DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
-DEBIAN_FRONTEND=noninteractive apt-get update -y
-sleep 3
-rocket_anim
+DEBIAN_FRONTEND=noninteractive apt-get update -y -qq && \
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq
 progressbar "Установка Docker и Git"
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git nginx docker.io docker-compose-plugin jq
 sleep 3
-rocket_anim
 
 stage "Включение Docker"
 systemctl enable --now docker

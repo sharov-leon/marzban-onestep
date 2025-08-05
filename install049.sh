@@ -1,0 +1,140 @@
+#!/bin/bash
+set -e
+
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+stage() { echo -e "\n${BLUE}========== $1 ==========${NC}"; }
+progressbar() { local msg=$1; for i in {1..14}; do echo -ne "${CYAN}$msg$(printf '%*s' $((i%4)) | tr ' ' '.')\r${NC}"; sleep 0.10; done; echo ""; }
+rocket_anim() { for i in $(seq 1 5); do echo -ne "🚀"; sleep 0.1; done; echo ""; }
+
+generate_password() { tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 10; }
+generate_login() { tr -dc 'A-Za-z' < /dev/urandom | head -c 6; }
+validate_login() { [[ "$1" =~ ^[a-zA-Z0-9-]{3,}$ ]]; }
+validate_password() { [[ ${#1} -ge 8 ]]; }
+
+echo -e "${GREEN}\n✨ Marzban 0.4.9 Быстрая установка ✨${NC}\n"
+echo -e "${BLUE}Установщик разработан alexcoder специально для курса на skladchik.org${NC}\n"
+
+if [[ $EUID -ne 0 ]]; then
+  echo -e "${YELLOW}[!] Запустите этот скрипт от имени root! (sudo su)${NC}"
+  exit 1
+fi
+
+while true; do
+    read -rp "👤 Введите имя администратора (3+ латинских буквы/цифры, или просто нажать Enter для автоматической генерации): " ADMIN_USER
+    if [[ -z "$ADMIN_USER" ]]; then
+        ADMIN_USER=$(generate_login)
+        echo -e "${CYAN}🆕 Сгенерирован логин: $ADMIN_USER${NC}"
+        break
+    fi
+    if validate_login "$ADMIN_USER"; then
+        break
+    else
+        echo -e "${YELLOW}❌ Логин должен быть не менее 3 символов, только латиница, цифры.${NC}"
+    fi
+done
+
+while true; do
+    read -srp "🔑 Введите пароль администратора (мин. 8 символов, или просто нажать Enter для автоматической генерации): " ADMIN_PASS1; echo
+    if [[ -z "$ADMIN_PASS1" ]]; then
+        ADMIN_PASS=$(generate_password)
+        echo -e "\n${CYAN}🔒 Сгенерирован пароль: $ADMIN_PASS${NC}"
+        break
+    fi
+    read -srp "🔑 Повторите пароль: " ADMIN_PASS2; echo
+    if [[ "$ADMIN_PASS1" != "$ADMIN_PASS2" ]]; then
+        echo -e "${YELLOW}❌ Пароли не совпадают! Попробуйте ещё раз.${NC}"
+        continue
+    fi
+    if ! validate_password "$ADMIN_PASS1"; then
+        echo -e "${YELLOW}❌ Пароль должен быть не менее 8 символов.${NC}"
+        continue
+    fi
+    ADMIN_PASS="$ADMIN_PASS1"
+    break
+done
+
+stage "Обновление системы и установка зависимостей"
+progressbar "Обновление пакетов"
+DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
+progressbar "Установка Docker и Git"
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git docker.io docker-compose-plugin
+
+stage "Включение Docker"
+systemctl enable --now docker
+
+stage "Загрузка Marzban 0.4.9"
+progressbar "Клонируем репозиторий"
+rm -rf /opt/marzban
+git clone --branch v0.4.9 --depth 1 https://github.com/Gozargah/Marzban.git /opt/marzban > /dev/null
+
+cd /opt/marzban
+
+stage "Генерация docker-compose.yml"
+progressbar "Готовим Docker Compose"
+cat > docker-compose.yml <<EOF
+services:
+  marzban:
+    image: gozargah/marzban:v0.4.9
+    restart: always
+    network_mode: host
+    environment:
+      - ADMIN_USERNAME=$ADMIN_USER
+      - ADMIN_PASSWORD=$ADMIN_PASS
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8000
+    volumes:
+      - /var/lib/marzban:/var/lib/marzban
+      - /var/log/marzban:/var/log/marzban
+EOF
+
+stage "Запуск Marzban"
+progressbar "Запуск контейнера"
+docker compose down > /dev/null 2>&1 || true
+docker compose up -d > /dev/null
+
+sleep 8
+if ! docker compose ps | grep -q Up; then
+    echo -e "${YELLOW}❌ Контейнер Marzban не стартовал! Посмотрите логи командой: docker compose logs"
+    echo -e "${YELLOW}Если нужна помощь — обратитесь к разработчику или в тему поддержки курса.${NC}"
+    exit 1
+fi
+
+echo -e "${CYAN}Создаём администратора автоматически...${NC}"
+echo -e "y\n\n\n" | docker compose exec -T marzban marzban-cli admin create --username "$ADMIN_USER" --password "$ADMIN_PASS" || true
+
+stage "Установка завершена"
+rocket_anim
+
+IP=$(curl -s http://checkip.amazonaws.com)
+
+INFO_FILE="/root/vpn-install-info.txt"
+cat > "$INFO_FILE" <<EOF
+Marzban v0.4.9 (Установка без домена/SSL)
+=========================================
+Дата: $(date)
+Панель: http://$IP:8000/dashboard
+
+Логин: $ADMIN_USER
+Пароль: $ADMIN_PASS
+EOF
+
+chmod 600 "$INFO_FILE"
+
+echo -e "${GREEN}🎉 Marzban 0.4.9 установлен и готов к работе!${NC}\n"
+echo -e "🌍 ${CYAN}Панель доступна по адресу: http://$IP:8000/dashboard${NC}"
+echo -e "👤 ${CYAN}Логин администратора:${NC} $ADMIN_USER"
+echo -e "🔑 ${CYAN}Пароль администратора:${NC} $ADMIN_PASS\n"
+
+echo -e "${YELLOW}Все данные сохранены в: ${CYAN}$INFO_FILE${NC}"
+echo -e "${GREEN}Этот файл защищён и доступен только root (суперпользователю).${NC}\n"
+
+echo -e "${YELLOW}Если порт 8000 закрыт — откройте его в панели управления сервера.${NC}"
+echo -e "${YELLOW}Или откатите севрер до заводских настроек в личном кабинете вашего VDS${NC}"
+echo -e "${BLUE}Скрипт разработан alexcoder для курса на skladchik.org${NC}"
+echo -e "${CYAN}Официальная документация: https://github.com/Gozargah/Marzban/wiki${NC}\n"
+echo -e "${CYAN}Ваш сервер готов к работе! 🚀${NC}\n"

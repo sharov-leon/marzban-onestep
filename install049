@@ -58,12 +58,17 @@ while true; do
     break
 done
 
-stage "Обновление системы и установка зависимостей"
-progressbar "Обновление пакетов"
-apt-get update -y
+#stage "Обновление системы и установка зависимостей"
+#progressbar "Обновление пакетов"
 #DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
-progressbar "Установка Docker и Git"
+#progressbar "Установка Docker и Git"
+#DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git nginx docker.io docker-compose-plugin jq
+
+echo "Обновление системы и установка зависимостей"
+DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
+echo "Установка Docker и Git"
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git nginx docker.io docker-compose-plugin jq
+
 
 stage "Включение Docker"
 systemctl enable --now docker

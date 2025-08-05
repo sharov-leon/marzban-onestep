@@ -139,7 +139,7 @@ echo -e "ShortId:    $SHORT_ID"
 echo -e "Trojan PW:  $TROJAN_PASS"
 echo -e "SS PW:      $SS_PASS${NC}"
 echo -e "${YELLOW}Конфиг сохранён в: ${CYAN}$CONFIG_PATH${NC}\n"
-echo -e "\n${BLUE}Разработчик: alexcoder для Складчика${NC}\n"
+echo -e "\n${BLUE}alexcoder для skladchik.org${NC}\n"
 
 echo -e "${YELLOW}========== СКОПИРУЙТЕ ЭТОТ БЛОК В XRAY-ПАНЕЛЬ MARZBAN ГДЕ ШЕСТЕРЕНКА ==========${NC}\n"
 cat "$CONFIG_PATH"

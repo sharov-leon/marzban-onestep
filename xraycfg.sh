@@ -1,0 +1,145 @@
+#!/bin/bash
+set -e
+
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+echo -e "${GREEN}\n========== Генератор XRay-конфига (Reality, VLESS, Trojan, Shadowsocks) ==========${NC}"
+echo -e "${BLUE}Скрипт от alexcoder для skladchik.org. Все ключи и пароли будут сгенерированы автоматически.${NC}\n"
+
+if ! command -v docker &>/dev/null; then
+    echo -e "${YELLOW}Требуется установленный Docker!${NC}"
+    exit 1
+fi
+
+echo -e "${CYAN}Генерируем x25519 ключи для Reality...${NC}"
+KEYS=$(docker run --rm ghcr.io/xtls/xray-core x25519)
+PRIVATE_KEY=$(echo "$KEYS" | grep 'Private' | awk '{print $3}')
+PUBLIC_KEY=$(echo "$KEYS" | grep 'Public' | awk '{print $3}')
+
+SHORT_ID=$(openssl rand -hex 8)
+TROJAN_PASS=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 12)
+SS_PASS=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 12)
+
+CONFIG_PATH="/root/xray-config.txt"
+cat > "$CONFIG_PATH" <<XRAYCFG
+{
+  "log": { "loglevel": "info" },
+  "inbounds": [
+    {
+      "tag": "VLESS TCP REALITY",
+      "listen": "0.0.0.0",
+      "port": 443,
+      "protocol": "vless",
+      "settings": { "clients": [], "decryption": "none" },
+      "streamSettings": {
+        "network": "tcp",
+        "tcpSettings": {},
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "cdnjs.com:443",
+          "xver": 0,
+          "serverNames": [
+            "cdnjs.com",
+            "cdnjs.cloudflare.com",
+            "cdn.jsdelivr.net",
+            "ajax.googleapis.com",
+            "fonts.googleapis.com",
+            "fonts.gstatic.com",
+            "www.cloudflare.com",
+            "www.google.com",
+            "www.youtube.com",
+            "googleapis.com"
+          ],
+          "privateKey": "$PRIVATE_KEY",
+          "shortIds": [ "$SHORT_ID" ]
+        }
+      },
+      "sniffing": { "enabled": true, "destOverride": [ "http", "tls" ] }
+    },
+    {
+      "tag": "VLESS WS",
+      "listen": "0.0.0.0",
+      "port": 8080,
+      "protocol": "vless",
+      "settings": { "clients": [], "decryption": "none" },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/ws" },
+        "security": "none"
+      },
+      "sniffing": { "enabled": true, "destOverride": [ "http", "tls" ] }
+    },
+    {
+      "tag": "Shadowsocks",
+      "listen": "0.0.0.0",
+      "port": 8388,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "2022-blake3-aes-128-gcm",
+        "password": "$SS_PASS",
+        "network": "tcp,udp",
+        "clients": []
+      }
+    },
+    {
+      "tag": "Trojan TCP",
+      "listen": "0.0.0.0",
+      "port": 4433,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          { "password": "$TROJAN_PASS" }
+        ]
+      },
+      "streamSettings": { "network": "tcp" }
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom", "tag": "DIRECT" },
+    { "protocol": "blackhole", "tag": "BLOCK" }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "outboundTag": "DIRECT",
+        "domain": [
+          "full:cp.cloudflare.com",
+          "domain:msftconnecttest.com",
+          "domain:msftncsi.com",
+          "domain:connectivitycheck.gstatic.com",
+          "domain:captive.apple.com",
+          "full:detectportal.firefox.com",
+          "domain:networkcheck.kde.org"
+        ],
+        "type": "field"
+      },
+      {
+        "ip": [ "geoip:private" ],
+        "domain": [ "geosite:private" ],
+        "protocol": [ "bittorrent" ],
+        "outboundTag": "BLOCK",
+        "type": "field"
+      }
+    ]
+  }
+}
+XRAYCFG
+
+chmod 600 "$CONFIG_PATH"
+
+echo -e "\n${GREEN}✔️ Конфиг Reality VLESS+WS+Trojan+Shadowsocks успешно сгенерирован!${NC}"
+echo -e "${CYAN}PrivateKey: $PRIVATE_KEY"
+echo -e "PublicKey:  $PUBLIC_KEY"
+echo -e "ShortId:    $SHORT_ID"
+echo -e "Trojan PW:  $TROJAN_PASS"
+echo -e "SS PW:      $SS_PASS${NC}"
+echo -e "${YELLOW}Конфиг сохранён в: ${CYAN}$CONFIG_PATH${NC}\n"
+echo -e "\n${BLUE}Разработчик: alexcoder для Складчика${NC}\n"
+
+echo -e "${YELLOW}========== СКОПИРУЙТЕ ЭТОТ БЛОК В XRAY-ПАНЕЛЬ MARZBAN ГДЕ ШЕСТЕРЕНКА ==========${NC}\n"
+cat "$CONFIG_PATH"

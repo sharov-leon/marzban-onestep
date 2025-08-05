@@ -60,7 +60,7 @@ done
 
 stage "Обновление системы и установка зависимостей"
 progressbar "Обновление пакетов"
-DEBIAN_FRONTEND=noninteractive apt-get update -y -qq
+DEBIAN_FRONTEND=noninteractive apt-get update -y
 progressbar "Установка Docker и Git"
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ca-certificates curl gnupg lsb-release git nginx docker.io docker-compose-plugin jq
 

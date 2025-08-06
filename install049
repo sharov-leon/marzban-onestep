@@ -253,5 +253,6 @@ echo -e "📄 ${YELLOW}Вся информация об установке со�
 echo -e "${GREEN}Этот файл защищен и может быть прочитан только суперпользователем (root).${NC}\n"
 echo -e "${BLUE}Скрипт разработан alexcoder для skladchik.org${NC}"
 echo -e "${CYAN}Ваш сервер готов к работе 🚀 !${NC}\n"
-echo -e "${GREEN}Теперь запустите команду для генерации xray конфига!${NC}\n"
-echo -e "${GREEN}bash <(curl -fsSL https://raw.githubusercontent.com/a1exc0der/marzban-onestep/refs/heads/main/xraygen)${NC}\n"
+echo -e "${GREEN}👇Теперь запустите команду для генерации xray конфига:👇${NC}\n"
+echo -e "${BLUE}bash <(curl -fsSL https://raw.githubusercontent.com/a1exc0der/marzban-onestep/refs/heads/main/xraygen)${NC}\n"
+echo -e "${GREEN}☝️Скопируйте эту команду, вставьте в терминал ниже и нажмите Enter☝️${NC}\n"

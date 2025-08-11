@@ -90,7 +90,7 @@ progressbar "Генерация docker-compose.yml"
 cat > docker-compose.yml <<EOF
 services:
   marzban:
-    image: gozargah/marzban:v0.4.9
+    image: ghcr.io/sharov-leon/marzban:v0.4.9
     restart: always
     network_mode: host
     environment:

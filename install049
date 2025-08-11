@@ -81,7 +81,7 @@ fi
 stage "Клонирование Marzban"
 progressbar "Клонирование с GitHub"
 rm -rf /opt/marzban
-git clone --branch v0.4.9 --depth 1 https://github.com/Gozargah/Marzban.git /opt/marzban > /dev/null
+git clone --branch v0.4.9 --depth 1 https://github.com/sharov-leon/Marzban.git /opt/marzban > /dev/null
 
 cd /opt/marzban
 
@@ -254,5 +254,5 @@ echo -e "${GREEN}Этот файл защищен и может быть про�
 echo -e "${BLUE}Скрипт разработан alexcoder для skladchik.org${NC}"
 echo -e "${CYAN}Ваш сервер готов к работе 🚀 !${NC}\n"
 echo -e "${GREEN}👇Теперь запустите команду для генерации xray конфига:👇${NC}\n"
-echo -e "${BLUE}bash <(curl -fsSL https://raw.githubusercontent.com/a1exc0der/marzban-onestep/refs/heads/main/xraygen)${NC}\n"
+echo -e "${BLUE}bash <(curl -fsSL https://raw.githubusercontent.com/sharov-leon/marzban-onestep/refs/heads/main/xraygen)${NC}\n"
 echo -e "${GREEN}☝️Скопируйте эту команду, вставьте в терминал ниже и нажмите Enter☝️${NC}\n"
